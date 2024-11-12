@@ -1,7 +1,6 @@
 # excel-to-pdf-python-lambda
 
-This project provides an AWS Lambda function in Python 3.12 that converts Excel files to PDFs using Docker and LibreOffice.
-
+This project provides an AWS Lambda function in Python 3.12 that converts Excel files to PDFs using Docker and LibreOffice. Notice that this use Amazon linux 2023 for the os, if you will use to lower version python the os will probably be Amazon linux 2, and the scripts may won't work
 ## Overview
 
 This repository contains the following components:
