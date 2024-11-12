@@ -1,0 +1,36 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+# download and install necessary packages for LibreOffice, remember that the python os is the light version of Amazon Linux 2023 plus python 
+RUN dnf update -y && \
+    dnf install -y wget tar gzip rpm findutils glibc libstdc++ libgcc \
+    libXext libSM libICE libXinerama libGL libGLU libXrender \
+    libXrandr libXtst fontconfig libXcomposite libXdamage \
+    libXfixes libXcursor libXi libxslt cups-libs mesa-dri-drivers \
+    nss gdb java-17-amazon-corretto-headless && \
+    dnf clean all
+
+# Set the LibreOffice version (ensure this version exists)
+ENV LIBREOFFICE_VERSION=24.8.2
+ENV LIBREOFFICE_VERSION_PATH=24.8
+
+# Download and install LibreOffice
+RUN wget https://download.documentfoundation.org/libreoffice/stable/${LIBREOFFICE_VERSION}/rpm/x86_64/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz && \
+    tar -xzf LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz && \
+    rpm -Uvh LibreOffice_${LIBREOFFICE_VERSION}*/RPMS/*.rpm && \
+    rm -rf LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz LibreOffice_${LIBREOFFICE_VERSION}*
+
+# Clean up
+RUN dnf clean all
+
+# define environment variables that will be used in the lambda function by libreoffice
+ENV LD_LIBRARY_PATH="/opt/libreoffice${LIBREOFFICE_VERSION_PATH}/program:/usr/lib64:${LD_LIBRARY_PATH}"
+ENV JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+ENV PATH=$JAVA_HOME/bin:$PATH
+ENV HOME=/tmp
+
+COPY excel_to_pdf.py ${LAMBDA_TASK_ROOT}
+COPY excel_to_pdf_runner.py ${LAMBDA_TASK_ROOT}
+
+CMD [ "excel_to_pdf.handler" ]
+
+
